@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Food Entry — MacroTracker</title>
+    <meta name="description" content="Confirm food entry deletion in MacroTracker">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a26;
+            --bg-card-hover: #22222f;
+            --border: #2a2a3a;
+            --border-focus: #ef4444;
+            --text-primary: #f1f1f4;
+            --text-secondary: #9292a8;
+            --text-muted: #5c5c72;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --calories: #f97316;
+            --calories-bg: rgba(249, 115, 22, 0.12);
+            --protein: #06b6d4;
+            --protein-bg: rgba(6, 182, 212, 0.12);
+            --carbs: #a855f7;
+            --carbs-bg: rgba(168, 85, 247, 0.12);
+            --fat: #eab308;
+            --fat-bg: rgba(234, 179, 8, 0.12);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.12);
+            --danger-glow: rgba(239, 68, 68, 0.35);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 40%, rgba(239, 68, 68, 0.08) 0%, transparent 60%),
+                        radial-gradient(circle at 30% 80%, rgba(99, 102, 241, 0.04) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .delete-container {
+            width: 100%;
+            max-width: 480px;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .delete-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.25rem 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+            text-align: center;
+        }
+
+        .delete-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--danger), #f43f5e);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .delete-icon-wrap {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.25rem;
+            background: var(--danger-bg);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.85rem;
+            box-shadow: 0 0 25px var(--danger-glow);
+        }
+
+        .delete-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .delete-desc {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        /* Food item details preview */
+        .item-preview {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+            margin-bottom: 1.75rem;
+            text-align: left;
+        }
+
+        .item-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .item-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .item-servings {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        .item-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .user-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--accent);
+        }
+
+        .user-badge.no-user {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+
+        .macro-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .macro-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            padding: 0.45rem 0.35rem;
+            text-align: center;
+        }
+
+        .macro-box .label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.15rem;
+        }
+
+        .macro-box .val {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .macro-box.cal .label, .macro-box.cal .val { color: var(--calories); }
+        .macro-box.pro .label, .macro-box.pro .val { color: var(--protein); }
+        .macro-box.carb .label, .macro-box.carb .val { color: var(--carbs); }
+        .macro-box.fat .label, .macro-box.fat .val { color: var(--fat); }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .btn-confirm-delete {
+            width: 100%;
+            padding: 0.85rem 1.5rem;
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.25s ease;
+            box-shadow: 0 4px 15px var(--danger-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-confirm-delete:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-confirm-delete:active {
+            transform: translateY(0);
+        }
+
+        .btn-cancel {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 1.25rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="delete-container">
+        <div class="delete-card">
+            <div class="delete-icon-wrap">🗑️</div>
+            <h1 class="delete-title">Delete Food Entry?</h1>
+            <p class="delete-desc">
+                Are you sure you want to remove this entry from your food log? This action cannot be undone.
+            </p>
+
+            {% if log %}
+            <div class="item-preview">
+                <div class="item-main">
+                    <span class="item-name">{{ log.food.name }}</span>
+                    <span class="item-servings">×{{ log.servings }} serving{{ log.servings|pluralize }}</span>
+                </div>
+                <div class="item-meta">
+                    {% if log.user %}
+                    <span class="user-badge">👤 {{ log.user.get_full_name|default:log.user.username }}</span>
+                    {% else %}
+                    <span class="user-badge no-user">👤 Unassigned</span>
+                    {% endif %}
+                    {% if log.added_at %}
+                    <span>🕒 {{ log.added_at|date:"M d, Y • h:i A" }}</span>
+                    {% endif %}
+                </div>
+                <div class="macro-row">
+                    <div class="macro-box cal">
+                        <div class="label">Calories</div>
+                        <div class="val">{{ log.calories }}</div>
+                    </div>
+                    <div class="macro-box pro">
+                        <div class="label">Protein</div>
+                        <div class="val">{{ log.protein }}g</div>
+                    </div>
+                    <div class="macro-box carb">
+                        <div class="label">Carbs</div>
+                        <div class="val">{{ log.carbs }}g</div>
+                    </div>
+                    <div class="macro-box fat">
+                        <div class="label">Fat</div>
+                        <div class="val">{{ log.fat }}g</div>
+                    </div>
+                </div>
+            </div>
+
+            <form method="post" action="{% url 'delete_food' log.id %}">
+                {% csrf_token %}
+                <div class="actions">
+                    <button type="submit" class="btn-confirm-delete">
+                        <span>🗑️</span> Confirm & Delete Entry
+                    </button>
+                    <a href="{% url 'index' %}" class="btn-cancel">
+                        Cancel & Return
+                    </a>
+                </div>
+            </form>
+            {% else %}
+            <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Entry not found or already deleted.</p>
+            <a href="{% url 'index' %}" class="btn-cancel">Return to Dashboard</a>
+            {% endif %}
+
+            <a href="{% url 'index' %}" class="back-link">
+                ← Back to MacroTracker Dashboard
+            </a>
+        </div>
+    </div>
+</body>
+</html>
